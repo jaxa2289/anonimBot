@@ -1,5 +1,4 @@
-version: "2.32.4"
-
+version: "3.9"
 
 services:
   bot:
@@ -7,40 +6,37 @@ services:
     image: anonim:alpine
     container_name: anonim_con
     restart: always
-    command: sh -c "alembic revision --autogenerate -m 'Create a baseline migrations' &&
-                    alembic upgrade head &&
-                    python3 main.py"
+    command: sh -c "python3 main.py"
     depends_on:
       - pg
+    environment:
+      DATABASE_URL: postgresql+psycopg2://postgres:3@pg:5432/postgres
 
   pg:
     image: postgres:alpine
     container_name: p27_pg_jaxongir
     restart: always
     environment:
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 3
+      POSTGRES_DB: postgre
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
 
-
-  redis:
-    image: redis:alpine
-    container_name: rd
-    command: redis-server /usr/local/etc/redis/redis.conf
+  alembic:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: alembic_container
+    environment:
+      DATABASE_URL: postgresql+psycopg2://postgres:3@pg:5432/postgres
+    depends_on:
+      - pg
     volumes:
-      - redisdata:/usr/local/etc/redis/redis.conf
-    ports:
-      - "6379:6379"
+      - .:/app
+    command: ["alembic", "upgrade", "head"]
 
 volumes:
   pgdata:
-  redisdata:
-
-
-
-
-
-
-
